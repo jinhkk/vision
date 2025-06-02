@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
 from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
 
 # CUDA 사용 여부 확인
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -67,12 +68,30 @@ def fit(epoch, model, data_loader, phase='training'):
 
     loss = running_loss / len(data_loader.dataset)
     accuracy = 100. * running_correct / len(data_loader.dataset)
-    print(f'{phase.capitalize()} Epoch {epoch + 1}: Loss={loss:.4f}, Accuracy={running_correct}/{len(data_loader.dataset)} ({accuracy:.2f}%)')
+    print(f'{phase.capitalize()} Epoch {epoch}: Loss={loss:.4f}, Accuracy={running_correct}/{len(data_loader.dataset)} ({accuracy:.2f}%)')
     return loss, accuracy
 
 # 훈련 루프
-for epoch in range(1, 20):
-    fit(epoch, model, train_loader, phase='training')
-    fit(epoch, model, test_loader, phase='validation')
+train_losses , train_accuracy = [],[]
+val_losses , val_accuracy = [],[]
+for epoch in range(1,20):
+    epoch_loss, epoch_accuracy = fit(epoch,model,train_loader,phase='training')
+    val_epoch_loss , val_epoch_accuracy = fit(epoch,model,test_loader,phase='validation')
+    train_losses.append(epoch_loss)
+    train_accuracy.append(epoch_accuracy)
+    val_losses.append(val_epoch_loss)
+    val_accuracy.append(val_epoch_accuracy)
 
 print('end')
+
+# 10. 훈련 데이터와 검증 데이터의 손실 그래프
+plt.plot(range(1, len(train_losses) + 1), train_losses, 'bo', label='training loss')
+plt.plot(range(1, len(val_losses) + 1), val_losses, 'r', label='validation loss')
+plt.legend()
+plt.show()
+
+# 11. 훈련 데이터와 검증 데이터의 정확도 그래프
+plt.plot(range(1, len(train_accuracy) + 1), train_accuracy, 'bo', label='train accuracy')
+plt.plot(range(1, len(val_accuracy) + 1), val_accuracy, 'r', label='val accuracy')
+plt.legend()
+plt.show()
